@@ -15,7 +15,7 @@ export default function Weather() {
     async function fetchWeather(){
         setLoading(true);
         setErr(null);
-        const res = await fetch(`/api/weather?city=${encodeURI(city)}&units=metric`)
+        const res = await fetch(`http://127.0.0.1:8000/api/weather?city=${encodeURI(city)}&units=metric`)
         if (!res.ok) { 
             setErr(`Error ${res.status}`);
             setLoading(false);
