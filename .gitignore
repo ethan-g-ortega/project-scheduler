@@ -28,3 +28,5 @@ dist-ssr
 *.pyd
 env/
 venv/
+*.py[cod]
+*$py.class
