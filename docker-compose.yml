@@ -1,0 +1,81 @@
+version: "3.9"
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  web_node_modules:
+
+services:
+  db:
+    image: postgres:16
+    container_name: pg16
+    environment:
+      POSTGRES_USER: Ethan
+      POSTGRES_PASSWORD: Ethang316
+      POSTGRES_DB: project_app_db
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [app_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Ethan -d project_app_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ethanortega316@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: Ethang316
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [app_net]
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile   # <-- moved under build
+    container_name: project-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://Ethan:Ethang316@pg16:5432/project_app_db
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks: [app_net]
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend/scheduling-project
+      dockerfile: Dockerfile
+    container_name: project-web
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+      HOST: 0.0.0.0
+      PORT: 5173
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+    networks: [app_net]
+    volumes:
+      - ./frontend/scheduling-project:/usr/src/app
+      - web_node_modules:/usr/src/app/node_modules
+    restart: unless-stopped
