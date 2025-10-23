@@ -25,7 +25,7 @@ export default function CustomerForm(){
 
     const addCustomer = async (c : Customer) => {
         try {
-            await api.post('/customers', {first_name: c.firstName, last_name: c.lastName, email: c.email, preferred_lang: "en"})
+            await api.post('/customers/', {first_name: c.firstName, last_name: c.lastName, email: c.email, preferred_lang: "en"})
         } catch (error) {
             console.error("Error adding customer")
         }

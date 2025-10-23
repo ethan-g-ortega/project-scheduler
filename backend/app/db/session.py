@@ -6,7 +6,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = "postgresql+psycopg://Ethan:Ethang316@pg16:5432/project_app_db"  # set by docker-compose
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg://Ethan:Ethang316@db:5432/project_app_db",  # <- container default
+)
 
 engine = create_engine(DATABASE_URL)
 

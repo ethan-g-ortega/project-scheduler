@@ -11,7 +11,7 @@ volumes:
 services:
   db:
     image: postgres:16
-    container_name: pg16
+    container_name: project_db
     environment:
       POSTGRES_USER: Ethan
       POSTGRES_PASSWORD: Ethang316
@@ -20,7 +20,9 @@ services:
       - "15432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    networks: [app_net]
+      - ./db-init:/docker-entrypoint-initdb.d
+    networks:
+      - app_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U Ethan -d project_app_db"]
       interval: 5s
@@ -30,7 +32,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin
+    container_name: project_pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: ethanortega316@gmail.com
       PGADMIN_DEFAULT_PASSWORD: Ethang316
@@ -39,42 +41,42 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks: [app_net]
+    networks:
+      - app_net
     restart: unless-stopped
 
   api:
     build:
       context: ./backend
-      dockerfile: Dockerfile   # <-- moved under build
-    container_name: project-api
+      dockerfile: Dockerfile
+    container_name: project_api
     environment:
-      DATABASE_URL: postgresql+psycopg://Ethan:Ethang316@pg16:5432/project_app_db
+      DATABASE_URL: postgresql+psycopg://Ethan:Ethang316@db:5432/project_app_db
       PYTHONUNBUFFERED: "1"
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8000:8000"
-    networks: [app_net]
+    networks:
+      - app_net
     volumes:
       - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     restart: unless-stopped
 
   web:
     build:
       context: ./frontend/scheduling-project
       dockerfile: Dockerfile
-    container_name: project-web
+    container_name: project_web
     environment:
-      VITE_API_BASE_URL: http://localhost:8000
-      HOST: 0.0.0.0
-      PORT: 5173
+      VITE_API_URL: http://localhost:8000
     depends_on:
       - api
     ports:
       - "5173:5173"
-    networks: [app_net]
+    networks:
+      - app_net
     volumes:
       - ./frontend/scheduling-project:/usr/src/app
       - web_node_modules:/usr/src/app/node_modules
