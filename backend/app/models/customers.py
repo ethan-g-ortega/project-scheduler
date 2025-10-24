@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, func, Enum as SAEnum
-from sqlalchemy.dialects.postgresql import CITEXT
 from app.db.session import Base
 
 from app.schemas.customers import PreferredLang
@@ -11,7 +10,7 @@ class Customers(Base):
     id = Column(Integer, primary_key=True)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
-    email = Column(CITEXT, nullable=False, unique=True)
+    email = Column(String(100), nullable=False, unique=True)
     preferred_lang = Column(
         SAEnum(PreferredLang,
                name="preferred_lang_enum",
